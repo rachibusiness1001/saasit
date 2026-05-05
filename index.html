@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SASIT — Team Management</title>
+  <link rel="stylesheet" href="styles.css">
+  <!-- EmailJS -->
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+</head>
+<body>
+
+<!-- Toast -->
+<div id="toast-container" class="toast-container"></div>
+
+<!-- Notification Panel -->
+<div id="notif-panel" class="notif-panel">
+  <div class="notif-header">
+    <span class="notif-title">🔔 Notifications</span>
+    <button class="modal-close" onclick="toggleNotifPanel()">✕</button>
+  </div>
+  <div id="notif-list" class="notif-list"></div>
+</div>
+
+<!-- ════════════════════════════════════════ -->
+<!--           LANDING PAGE                  -->
+<!-- ════════════════════════════════════════ -->
+<div id="landing-page" class="page">
+  <div class="landing-bg"></div>
+  <div class="landing-grid"></div>
+  <nav class="landing-nav">
+    <div class="logo">SASIT</div>
+    <div class="nav-btns">
+      <button class="btn btn-secondary" onclick="showPage('login-page')">Login</button>
+    </div>
+  </nav>
+  <section class="landing-hero">
+    <div class="hero-badge"><span></span> Smart Team Management Platform</div>
+    <h1 class="hero-title">Manage Your Team<br><span class="highlight">Smarter & Faster</span></h1>
+    <p class="hero-sub">SASIT brings your admin and employees on one platform — assign tasks, manage orders, track progress, and grow together.</p>
+    <div class="hero-cta">
+      <button class="btn btn-primary" onclick="showPage('login-page')">Get Started →</button>
+    </div>
+    <div class="hero-stats">
+      <div class="stat-item"><div class="stat-num">100%</div><div class="stat-label">Real-time Updates</div></div>
+      <div class="stat-item"><div class="stat-num">2</div><div class="stat-label">Roles Supported</div></div>
+      <div class="stat-item"><div class="stat-num">∞</div><div class="stat-label">Tasks & Orders</div></div>
+    </div>
+  </section>
+  <div class="features-grid">
+    <div class="feature-card"><div class="feature-icon">👥</div><div class="feature-title">Employee Management</div><div class="feature-desc">Create employee accounts, assign IDs, manage roles and contact info in one place.</div></div>
+    <div class="feature-card"><div class="feature-icon">✅</div><div class="feature-title">Task Assignment</div><div class="feature-desc">Assign tasks with priorities, deadlines and descriptions. Employees see updates instantly.</div></div>
+    <div class="feature-card"><div class="feature-icon">📦</div><div class="feature-title">Order Tracking</div><div class="feature-desc">Track link building and SEO orders from pending to completed with status updates.</div></div>
+    <div class="feature-card"><div class="feature-icon">💬</div><div class="feature-title">Team Chat</div><div class="feature-desc">Admin and employees can chat directly inside the platform. No external tools needed.</div></div>
+    <div class="feature-card"><div class="feature-icon">📧</div><div class="feature-title">Email Notifications</div><div class="feature-desc">Get Gmail alerts when orders or tasks are completed. Powered by EmailJS.</div></div>
+    <div class="feature-card"><div class="feature-icon">🔒</div><div class="feature-title">Secure Access</div><div class="feature-desc">Separate login for admin and employees. Each sees only what they need to.</div></div>
+  </div>
+  <div style="padding:40px 0;text-align:center;color:var(--text-muted);font-size:13px;position:relative;z-index:1">
+    © 2025 SASIT — Built for your team
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════ -->
+<!--             LOGIN PAGE                  -->
+<!-- ════════════════════════════════════════ -->
+<div id="login-page" class="page">
+  <div class="login-bg"></div>
+  <div class="login-container">
+    <div style="text-align:center;margin-bottom:24px">
+      <div class="back-btn" style="justify-content:center" onclick="showPage('landing-page')">← Back to Home</div>
+    </div>
+    <div class="login-tabs">
+      <button class="login-tab active" data-mode="admin" onclick="setLoginTab('admin')">🛡 Admin</button>
+      <button class="login-tab" data-mode="employee" onclick="setLoginTab('employee')">👤 Employee</button>
+    </div>
+    <div class="login-card">
+      <div class="login-header">
+        <div class="login-logo">SASIT</div>
+        <div class="login-subtitle">Welcome back — sign in to continue</div>
+      </div>
+      <!-- Admin Form -->
+      <div id="admin-form" class="login-form active">
+        <div class="form-group">
+          <label class="form-label">Username</label>
+          <input class="form-input" id="admin-user" type="text" placeholder="admin" autocomplete="off">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Password</label>
+          <input class="form-input" id="admin-pass" type="password" placeholder="••••••••">
+        </div>
+        <div id="login-error" class="login-error"></div>
+        <button class="btn btn-primary btn-full" onclick="doLogin()">Sign In as Admin →</button>
+      </div>
+      <!-- Employee Form -->
+      <div id="employee-form" class="login-form">
+        <div class="form-group">
+          <label class="form-label">Email Address</label>
+          <input class="form-input" id="emp-email" type="email" placeholder="your@sasit.in" autocomplete="off">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Employee ID (Password)</label>
+          <input class="form-input" id="emp-id" type="text" placeholder="EMP001">
+        </div>
+        <button class="btn btn-primary btn-full" onclick="doLogin()">Sign In as Employee →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════ -->
+<!--           ADMIN DASHBOARD               -->
+<!-- ════════════════════════════════════════ -->
+<div id="admin-page" class="page">
+  <div class="app-layout">
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-logo">SASIT</div>
+        <div class="sidebar-role">Admin Panel</div>
+      </div>
+      <div class="sidebar-user">
+        <div class="user-avatar">AD</div>
+        <div><div class="user-name">Admin</div><div class="user-id">Super Admin</div></div>
+      </div>
+      <nav class="sidebar-nav">
+        <div class="nav-section-label">Main</div>
+        <div class="nav-item active" data-tab="dashboard" onclick="showAdminTab('dashboard')"><span class="nav-icon">📊</span> Dashboard</div>
+        <div class="nav-item" data-tab="employees" onclick="showAdminTab('employees')"><span class="nav-icon">👥</span> Employees</div>
+        <div class="nav-section-label">Work</div>
+        <div class="nav-item" data-tab="tasks" onclick="showAdminTab('tasks')"><span class="nav-icon">✅</span> Tasks</div>
+        <div class="nav-item" data-tab="orders" onclick="showAdminTab('orders')"><span class="nav-icon">📦</span> Orders</div>
+        <div class="nav-section-label">Communication</div>
+        <div class="nav-item" data-tab="chat" onclick="showAdminTab('chat')"><span class="nav-icon">💬</span> Team Chat</div>
+        <div class="nav-section-label">Admin</div>
+        <div class="nav-item" data-tab="admins" onclick="showAdminTab('admins')"><span class="nav-icon">🛡</span> Manage Admins</div>
+        <div class="nav-item" data-tab="settings" onclick="showAdminTab('settings')"><span class="nav-icon">⚙️</span> Settings</div>
+      </nav>
+      <div class="sidebar-footer">
+        <button class="btn btn-secondary btn-full" onclick="doLogout()">🚪 Logout</button>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <div class="topbar">
+        <div id="admin-topbar-title" class="topbar-title">Dashboard</div>
+        <div class="topbar-right">
+          <div class="notif-btn" onclick="toggleNotifPanel()">🔔 <span class="notif-dot"></span></div>
+        </div>
+      </div>
+      <div class="content-area">
+
+        <!-- Dashboard Tab -->
+        <div id="tab-dashboard" class="tab-view active">
+          <div class="stats-grid">
+            <div class="stat-card accent"><div class="stat-card-icon">👥</div><div id="stat-employees" class="stat-card-value">0</div><div class="stat-card-label">Total Employees</div></div>
+            <div class="stat-card orange"><div class="stat-card-icon">⏳</div><div id="stat-pending-tasks" class="stat-card-value">0</div><div class="stat-card-label">Pending Tasks</div></div>
+            <div class="stat-card yellow"><div class="stat-card-icon">📦</div><div id="stat-total-orders" class="stat-card-value">0</div><div class="stat-card-label">Total Orders</div></div>
+            <div class="stat-card green"><div class="stat-card-icon">💰</div><div id="stat-revenue" class="stat-card-value">₹0</div><div class="stat-card-label">Revenue (Completed)</div></div>
+          </div>
+          <div class="section-header"><div class="section-title">Recent Activity</div></div>
+          <div class="table-container">
+            <table><thead><tr><th>Item</th><th>Assigned To</th><th>Priority</th><th>Status</th><th>Date</th></tr></thead>
+            <tbody id="recent-activity"></tbody></table>
+          </div>
+        </div>
+
+        <!-- Employees Tab -->
+        <div id="tab-employees" class="tab-view">
+          <div class="section-header">
+            <div class="section-title">All Employees</div>
+            <button class="btn btn-primary btn-sm" onclick="openAddEmp()">+ Add Employee</button>
+          </div>
+          <div class="table-container">
+            <table><thead><tr><th>Employee</th><th>ID</th><th>Role</th><th>Phone</th><th>Joined</th><th>Actions</th></tr></thead>
+            <tbody id="emp-tbody"></tbody></table>
+          </div>
+        </div>
+
+        <!-- Tasks Tab -->
+        <div id="tab-tasks" class="tab-view">
+          <div class="section-header">
+            <div class="section-title">All Tasks</div>
+            <button class="btn btn-primary btn-sm" onclick="openAddTask()">+ Assign Task</button>
+          </div>
+          <div class="table-container">
+            <table><thead><tr><th>Task</th><th>Assigned To</th><th>Priority</th><th>Status</th><th>Deadline</th><th>Actions</th></tr></thead>
+            <tbody id="task-tbody"></tbody></table>
+          </div>
+        </div>
+
+        <!-- Orders Tab -->
+        <div id="tab-orders" class="tab-view">
+          <div class="section-header">
+            <div class="section-title">All Orders</div>
+            <button class="btn btn-primary btn-sm" onclick="openAddOrder()">+ New Order</button>
+          </div>
+          <div class="table-container">
+            <table><thead><tr><th>Client</th><th>Link</th><th>Assigned To</th><th>Amount</th><th>Status</th><th>Date</th><th>Actions</th></tr></thead>
+            <tbody id="order-tbody"></tbody></table>
+          </div>
+        </div>
+
+        <!-- Chat Tab -->
+        <div id="tab-chat" class="tab-view">
+          <div class="chat-layout">
+            <div class="chat-sidebar">
+              <div class="chat-sidebar-header">💬 Employees</div>
+              <div id="chat-emp-list" class="chat-emp-list"></div>
+            </div>
+            <div class="chat-main">
+              <div class="chat-topbar" id="chat-emp-name">Select an employee</div>
+              <div id="chat-messages-area" class="chat-messages-area">
+                <div class="empty-state" style="margin:auto"><div class="empty-icon">💬</div><p>Select an employee to start chatting</p></div>
+              </div>
+              <div id="chat-input-row" class="chat-input-row" style="display:none">
+                <input class="form-input" id="admin-chat-input" placeholder="Type a message..." style="flex:1">
+                <button class="btn btn-primary" onclick="sendAdminChatMessage()">Send →</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Admins Tab -->
+        <div id="tab-admins" class="tab-view">
+          <div class="section-header">
+            <div class="section-title">Admin Accounts</div>
+            <button class="btn btn-primary btn-sm" onclick="openModal('add-admin-modal')">+ Add Admin</button>
+          </div>
+          <div class="table-container">
+            <table>
+              <thead><tr><th>Admin</th><th>Username</th><th>Type</th><th>Created</th><th>Actions</th></tr></thead>
+              <tbody id="admin-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+
+                <!-- Settings Tab -->
+        <div id="tab-settings" class="tab-view">
+          <div class="settings-section">
+            <div class="settings-section-title">📧 Email Notifications (EmailJS)</div>
+            <div class="form-group" style="margin-bottom:16px">
+              <label class="form-label">Admin Gmail (for receiving notifications)</label>
+              <input class="form-input" id="settings-admin-email" type="email" placeholder="youremail@gmail.com">
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">EmailJS Service ID</label>
+                <input class="form-input" id="settings-ejs-service" type="text" placeholder="service_xxxxxxx">
+              </div>
+              <div class="form-group">
+                <label class="form-label">EmailJS Template ID</label>
+                <input class="form-input" id="settings-ejs-template" type="text" placeholder="template_xxxxxxx">
+              </div>
+            </div>
+            <div class="form-group" style="margin-top:16px">
+              <label class="form-label">EmailJS Public Key</label>
+              <input class="form-input" id="settings-ejs-pubkey" type="text" placeholder="xxxxxxxxxxxxxxxxxxx">
+            </div>
+            <div class="settings-hint">
+              <strong>How to set up EmailJS (free, no backend needed):</strong><br>
+              1. Go to <a href="https://emailjs.com" target="_blank">emailjs.com</a> and create a free account<br>
+              2. Add a service (connect your Gmail) → copy the <code>Service ID</code><br>
+              3. Create an email template with variables: <code>{{to_email}}</code>, <code>{{subject}}</code>, <code>{{message}}</code> → copy the <code>Template ID</code><br>
+              4. Go to Account → copy your <code>Public Key</code><br>
+              5. Add each employee's Gmail in their profile when creating them<br>
+              6. Paste all values above and click Save
+            </div>
+            <div style="margin-top:20px">
+              <button class="btn btn-primary" onclick="saveSettings()">💾 Save Settings</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════ -->
+<!--         EMPLOYEE DASHBOARD              -->
+<!-- ════════════════════════════════════════ -->
+<div id="employee-page" class="page">
+  <div class="app-layout">
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-logo">SASIT</div>
+        <div class="sidebar-role">Employee Panel</div>
+      </div>
+      <div class="sidebar-user">
+        <div class="user-avatar" id="emp-user-avatar">EMP</div>
+        <div><div class="user-name" id="emp-user-name">Employee</div><div class="user-id" id="emp-user-id">ID</div></div>
+      </div>
+      <nav class="sidebar-nav">
+        <div class="nav-section-label">My Work</div>
+        <div class="nav-item emp-nav-item active" data-tab="my-tasks" onclick="showEmpTab('my-tasks')"><span class="nav-icon">✅</span> Daily Tasks</div>
+        <div class="nav-item emp-nav-item" data-tab="my-orders" onclick="showEmpTab('my-orders')"><span class="nav-icon">📦</span> My Orders</div>
+        <div class="nav-section-label">Communication</div>
+        <div class="nav-item emp-nav-item" data-tab="chat" onclick="showEmpTab('chat')"><span class="nav-icon">💬</span> Chat with Admin</div>
+      </nav>
+      <div class="sidebar-footer">
+        <button class="btn btn-secondary btn-full" onclick="doLogout()">🚪 Logout</button>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <div class="topbar">
+        <div class="topbar-title">Welcome, <span id="emp-topbar-user" style="color:var(--accent-light)">Employee</span></div>
+        <div class="topbar-right">
+          <div class="notif-btn" onclick="toggleNotifPanel()">🔔 <span class="notif-dot"></span></div>
+        </div>
+      </div>
+      <div class="content-area">
+
+        <!-- Daily Tasks -->
+        <div id="emp-tab-my-tasks" class="emp-tab-view active">
+          <div class="section-header" style="margin-bottom:20px">
+            <div class="section-title">✅ Daily Tasks</div>
+          </div>
+          <div class="table-container">
+            <table><thead><tr><th>Task</th><th>Priority</th><th>Status</th><th>Deadline</th><th>Assigned On</th><th>Actions</th></tr></thead>
+            <tbody id="my-task-tbody"></tbody></table>
+          </div>
+        </div>
+
+        <!-- My Orders -->
+        <div id="emp-tab-my-orders" class="emp-tab-view">
+          <div class="section-header" style="margin-bottom:20px">
+            <div class="section-title">📦 My Orders</div>
+          </div>
+          <div id="my-orders-list"></div>
+        </div>
+
+        <!-- Chat — full standalone page, no tabs here -->
+        <div id="emp-tab-chat" class="emp-tab-view">
+          <div class="emp-chat-layout">
+            <div class="emp-chat-header">💬 Chat with Admin</div>
+            <div id="emp-chat-messages" class="chat-messages-area"></div>
+            <div class="chat-input-row">
+              <input class="form-input" id="emp-chat-input" placeholder="Type a message to Admin..." style="flex:1">
+              <button class="btn btn-primary" onclick="sendEmpChatMessage()">Send →</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════ -->
+<!--               MODALS                    -->
+<!-- ════════════════════════════════════════ -->
+
+<!-- Add Employee Modal -->
+<div id="add-emp-modal" class="modal-overlay">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">👤 Add New Employee</span>
+      <span class="modal-close" onclick="closeModal('add-emp-modal')">✕</span>
+    </div>
+    <form id="add-emp-form" onsubmit="return false">
+      <div class="modal-body">
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Full Name *</label>
+            <input class="form-input" id="new-emp-name" type="text" placeholder="Rohit Verma">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Role *</label>
+            <input class="form-input" id="new-emp-role" type="text" placeholder="Developer">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Login Email *</label>
+          <input class="form-input" id="new-emp-email" type="email" placeholder="rohit@sasit.in">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Phone Number *</label>
+          <input class="form-input" id="new-emp-phone" type="text" placeholder="9876543210">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Gmail for Notifications (optional)</label>
+          <input class="form-input" id="new-emp-gmail" type="email" placeholder="rohit@gmail.com">
+        </div>
+        <div class="login-hint">
+          <strong>Note:</strong> Employee ID will be auto-generated. Employee logs in using their <strong>Email + Employee ID</strong>.
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal('add-emp-modal')">Cancel</button>
+        <button class="btn btn-primary" onclick="submitAddEmp()">Create Employee</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Add Task Modal -->
+<div id="add-task-modal" class="modal-overlay">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">✅ Assign New Task</span>
+      <span class="modal-close" onclick="closeModal('add-task-modal')">✕</span>
+    </div>
+    <form id="add-task-form" onsubmit="return false">
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">Task Title *</label>
+          <input class="form-input" id="task-title" type="text" placeholder="e.g. Fix homepage bug">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Description</label>
+          <textarea class="form-textarea" id="task-desc" placeholder="Describe the task in detail..."></textarea>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Assign To *</label>
+            <select class="form-select" id="task-assign-sel"></select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Priority</label>
+            <select class="form-select" id="task-priority">
+              <option value="medium">Medium</option>
+              <option value="high">High</option>
+              <option value="low">Low</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Deadline *</label>
+          <input class="form-input" id="task-deadline" type="date">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal('add-task-modal')">Cancel</button>
+        <button class="btn btn-primary" onclick="submitAddTask()">Assign Task</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Add Order Modal -->
+<div id="add-order-modal" class="modal-overlay">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">📦 New Order</span>
+      <span class="modal-close" onclick="closeModal('add-order-modal')">✕</span>
+    </div>
+    <form id="add-order-form" onsubmit="return false">
+      <div class="modal-body">
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Client Name *</label>
+            <input class="form-input" id="order-client" type="text" placeholder="Sharma Industries">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Order Type *</label>
+            <input class="form-input" id="order-type" type="text" placeholder="Link Building / SEO">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Client Website Link *</label>
+          <input class="form-input" id="order-link-input" type="url" placeholder="https://client.com">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Pages</label>
+            <input class="form-input" id="order-pages" type="number" placeholder="5">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Amount (₹) *</label>
+            <input class="form-input" id="order-amount" type="number" placeholder="15000">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Assign To Employee</label>
+          <select class="form-select" id="order-assign-sel"></select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Notes</label>
+          <textarea class="form-textarea" id="order-notes" placeholder="Any special instructions..."></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal('add-order-modal')">Cancel</button>
+        <button class="btn btn-primary" onclick="submitAddOrder()">Create Order</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Detail / Comments Modal -->
+<div id="detail-modal" class="modal-overlay">
+  <div class="modal" style="max-width:640px">
+    <div class="modal-header">
+      <span class="modal-title" id="detail-modal-title">Details</span>
+      <span class="modal-close" onclick="closeModal('detail-modal')">✕</span>
+    </div>
+    <div class="modal-body" id="detail-modal-body"></div>
+  </div>
+</div>
+
+<!-- Add Admin Modal -->
+<div id="add-admin-modal" class="modal-overlay">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">🛡 Add New Admin</span>
+      <span class="modal-close" onclick="closeModal('add-admin-modal')">✕</span>
+    </div>
+    <form id="add-admin-form" onsubmit="return false">
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">Full Name *</label>
+          <input class="form-input" id="new-admin-name" type="text" placeholder="Suresh Gupta">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Username *</label>
+          <input class="form-input" id="new-admin-username" type="text" placeholder="suresh_admin">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Password *</label>
+          <input class="form-input" id="new-admin-password" type="password" placeholder="••••••••">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Gmail for Notifications (optional)</label>
+          <input class="form-input" id="new-admin-gmail" type="email" placeholder="suresh@gmail.com">
+        </div>
+        <div class="login-hint">This admin will have full access to the SASIT panel.</div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal('add-admin-modal')">Cancel</button>
+        <button class="btn btn-primary" onclick="submitAddAdmin()">Create Admin</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Employee Profile Modal -->
+<div id="emp-profile-modal" class="modal-overlay">
+  <div class="modal" style="max-width:680px">
+    <div class="modal-header">
+      <span class="modal-title" id="emp-profile-title">Employee Profile</span>
+      <span class="modal-close" onclick="closeModal('emp-profile-modal')">✕</span>
+    </div>
+    <div class="modal-body" id="emp-profile-body"></div>
+  </div>
+</div>
+
+
+<!-- Add Admin Modal -->
+<div id="add-admin-modal" class="modal-overlay">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">🛡 Add New Admin</span>
+      <span class="modal-close" onclick="closeModal('add-admin-modal')">✕</span>
+    </div>
+    <form id="add-admin-form" onsubmit="return false">
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">Full Name *</label>
+          <input class="form-input" id="new-admin-name" type="text" placeholder="e.g. Rohit Sharma">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Username *</label>
+            <input class="form-input" id="new-admin-username" type="text" placeholder="rohit_admin">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Password *</label>
+            <input class="form-input" id="new-admin-password" type="password" placeholder="••••••••">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Gmail (for notifications)</label>
+          <input class="form-input" id="new-admin-email" type="email" placeholder="rohit@gmail.com">
+        </div>
+        <div class="login-hint" style="margin-top:4px">
+          <strong>Note:</strong> This admin will have full access — same as you. Share credentials carefully.
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal('add-admin-modal')">Cancel</button>
+        <button class="btn btn-primary" onclick="submitAddAdmin()">Create Admin</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Employee Profile Modal -->
+<div id="emp-profile-modal" class="modal-overlay">
+  <div class="modal" style="max-width:600px">
+    <div class="modal-header">
+      <span class="modal-title" id="emp-profile-title">Employee Profile</span>
+      <span class="modal-close" onclick="closeModal('emp-profile-modal')">✕</span>
+    </div>
+    <div class="modal-body" id="emp-profile-body"></div>
+  </div>
+</div>
+
+<script src="store.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
