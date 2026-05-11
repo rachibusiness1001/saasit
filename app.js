@@ -228,15 +228,13 @@ function initAdminDashboard() {
 
 function showAdminTab(tab) {
   const adminPage = document.getElementById('admin-page');
-  // Update nav items
   adminPage.querySelectorAll('.nav-item[data-tab]').forEach(n => n.classList.toggle('active', n.dataset.tab === tab));
-  // Hide all admin tab-views, show only the active one
-  const allTabs = ['dashboard','employees','tasks','orders','chat','admins','settings'];
+  const allTabs = ['dashboard','employees','tasks','orders','chat','admins','reports','settings'];
   allTabs.forEach(t => {
     const el = document.getElementById('tab-' + t);
     if (el) el.classList.toggle('active', t === tab);
   });
-  const titles = { dashboard: 'Dashboard', employees: 'Employees', tasks: 'Tasks', orders: 'Orders', chat: 'Team Chat', admins: 'Manage Admins', settings: 'Settings' };
+  const titles = { dashboard: 'Dashboard', employees: 'Employees', tasks: 'Tasks', orders: 'Orders', chat: 'Team Chat', admins: 'Manage Admins', reports: 'Reports', settings: 'Settings' };
   document.getElementById('admin-topbar-title').textContent = titles[tab] || 'Dashboard';
   currentDetailView = null;
   if (tab === 'dashboard') renderAdminDashboard();
@@ -245,6 +243,7 @@ function showAdminTab(tab) {
   if (tab === 'orders') renderOrders();
   if (tab === 'chat') renderAdminChat();
   if (tab === 'admins') renderAdmins();
+  if (tab === 'reports') renderReports();
   if (tab === 'settings') renderSettings();
 }
 
@@ -613,7 +612,7 @@ function initEmployeeDashboard() {
 function showEmpTab(tab) {
   const empPage = document.getElementById('employee-page');
   empPage.querySelectorAll('.emp-nav-item').forEach(n => n.classList.toggle('active', n.dataset.tab === tab));
-  const allEmpTabs = ['my-tasks','my-orders','chat'];
+  const allEmpTabs = ['my-tasks','my-orders','link-exchange','chat'];
   allEmpTabs.forEach(t => {
     const el = document.getElementById('emp-tab-' + t);
     if (el) el.classList.toggle('active', t === tab);
@@ -621,6 +620,7 @@ function showEmpTab(tab) {
   if (tab === 'my-tasks') renderMyTasks();
   if (tab === 'my-orders') renderMyOrders();
   if (tab === 'chat') renderEmployeeChat();
+  if (tab === 'link-exchange') renderLinkExchange();
 }
 
 function renderMyTasks() {
@@ -775,3 +775,218 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 });
+
+// ─── Reports Tab ─────────────────────────────────────────────────
+let reportSelectedEmp = null;
+
+function renderReports() {
+  const empSel = document.getElementById('report-emp-select');
+  if (!empSel) return;
+  empSel.innerHTML = '<option value="">-- Select Employee --</option>' +
+    SASIT.data.employees.map(e => `<option value="${e.id}">${e.name} (${e.id})</option>`).join('');
+  document.getElementById('report-content').innerHTML = `
+    <div class="empty-state"><div class="empty-icon">📊</div><p>Select an employee to view their report</p></div>`;
+}
+
+function loadEmployeeReport() {
+  const empId = document.getElementById('report-emp-select').value;
+  if (!empId) return;
+  reportSelectedEmp = empId;
+  const emp = SASIT.getEmployeeById(empId);
+  const tasks = SASIT.getTasksForEmployee(empId);
+  const orders = SASIT.getOrdersForEmployee(empId);
+
+  // Group orders by date
+  const ordersByDate = {};
+  orders.forEach(o => {
+    if (!ordersByDate[o.createdAt]) ordersByDate[o.createdAt] = [];
+    ordersByDate[o.createdAt].push(o);
+  });
+
+  // Group orders by month
+  const ordersByMonth = {};
+  orders.forEach(o => {
+    const month = o.createdAt.slice(0, 7);
+    if (!ordersByMonth[month]) ordersByMonth[month] = [];
+    ordersByMonth[month].push(o);
+  });
+
+  const completedTasks = tasks.filter(t => t.status === 'completed').length;
+  const completedOrders = orders.filter(o => o.status === 'completed').length;
+  const revenue = orders.filter(o => o.status === 'completed').reduce((s,o) => s + o.amount, 0);
+
+  document.getElementById('report-content').innerHTML = `
+    <!-- Stats -->
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:28px">
+      <div class="stat-card accent"><div class="stat-card-icon">✅</div><div class="stat-card-value">${tasks.length}</div><div class="stat-card-label">Total Tasks</div></div>
+      <div class="stat-card green"><div class="stat-card-icon">🏆</div><div class="stat-card-value">${completedTasks}</div><div class="stat-card-label">Tasks Done</div></div>
+      <div class="stat-card yellow"><div class="stat-card-icon">📦</div><div class="stat-card-value">${orders.length}</div><div class="stat-card-label">Total Orders</div></div>
+      <div class="stat-card green"><div class="stat-card-icon">💰</div><div class="stat-card-value">₹${revenue.toLocaleString('en-IN')}</div><div class="stat-card-label">Revenue</div></div>
+    </div>
+
+    <!-- Download CSV -->
+    <div class="section-header" style="margin-bottom:16px">
+      <div class="section-title">📅 Daily Orders</div>
+      <button class="btn btn-primary btn-sm" onclick="downloadCSV('${empId}')">⬇ Download Monthly CSV</button>
+    </div>
+
+    <!-- Daily Orders Table -->
+    <div class="table-container" style="margin-bottom:28px">
+      <table>
+        <thead><tr><th>Date</th><th>Client</th><th>Type</th><th>Pages</th><th>Amount</th><th>Status</th></tr></thead>
+        <tbody>
+          ${orders.length ? orders.sort((a,b) => b.createdAt.localeCompare(a.createdAt)).map(o => `
+            <tr>
+              <td>${o.createdAt}</td>
+              <td style="font-weight:500">${o.clientName}</td>
+              <td>${o.type}</td>
+              <td>${o.pages}</td>
+              <td style="color:var(--green);font-weight:700">₹${o.amount.toLocaleString('en-IN')}</td>
+              <td>${getBadge(o.status)}</td>
+            </tr>
+          `).join('') : '<tr><td colspan="6"><div class="empty-state"><div class="empty-icon">📦</div><p>No orders yet</p></div></td></tr>'}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Monthly Summary -->
+    <div class="section-header" style="margin-bottom:16px">
+      <div class="section-title">📆 Monthly Summary</div>
+    </div>
+    <div class="table-container">
+      <table>
+        <thead><tr><th>Month</th><th>Total Orders</th><th>Completed</th><th>Pending</th><th>Revenue</th></tr></thead>
+        <tbody>
+          ${Object.keys(ordersByMonth).length ? Object.keys(ordersByMonth).sort((a,b) => b.localeCompare(a)).map(month => {
+            const mo = ordersByMonth[month];
+            const rev = mo.filter(o => o.status === 'completed').reduce((s,o) => s+o.amount, 0);
+            return `<tr>
+              <td style="font-weight:600">${month}</td>
+              <td>${mo.length}</td>
+              <td style="color:var(--green)">${mo.filter(o=>o.status==='completed').length}</td>
+              <td style="color:var(--orange)">${mo.filter(o=>o.status==='pending').length}</td>
+              <td style="color:var(--green);font-weight:700">₹${rev.toLocaleString('en-IN')}</td>
+            </tr>`;
+          }).join('') : '<tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:20px">No data</td></tr>'}
+        </tbody>
+      </table>
+    </div>
+  `;
+}
+
+function downloadCSV(empId) {
+  const emp = SASIT.getEmployeeById(empId);
+  const orders = SASIT.getOrdersForEmployee(empId);
+  if (!orders.length) { showToast('No orders to export', 'error'); return; }
+
+  const headers = ['Date','Order ID','Client Name','Type','Pages','Amount','Status','Notes'];
+  const rows = orders.sort((a,b) => b.createdAt.localeCompare(a.createdAt)).map(o => [
+    o.createdAt, o.id, `"${o.clientName}"`, `"${o.type}"`, o.pages, o.amount,
+    o.status, `"${o.notes || ''}"`
+  ]);
+
+  const csv = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `${emp.name.replace(' ','_')}_orders_${new Date().toISOString().split('T')[0]}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('CSV downloaded!', 'success');
+}
+
+// ─── Link Exchange ────────────────────────────────────────────────
+function renderLinkExchange() {
+  const empId = SASIT.currentUser.id;
+  const links = SASIT.getLinkExchangesForEmployee(empId);
+
+  // Stats
+  const given = links.filter(l => l.givenTo).length;
+  const received = links.filter(l => l.takenFrom).length;
+  const exchangeComplete = links.filter(l => l.givenBack && l.receivedBack).length;
+
+  document.getElementById('link-stats').innerHTML = `
+    <div class="stat-card accent"><div class="stat-card-icon">🔗</div><div class="stat-card-value">${links.length}</div><div class="stat-card-label">Total Entries</div></div>
+    <div class="stat-card green"><div class="stat-card-icon">⬆</div><div class="stat-card-value">${given}</div><div class="stat-card-label">Links Given</div></div>
+    <div class="stat-card yellow"><div class="stat-card-icon">⬇</div><div class="stat-card-value">${received}</div><div class="stat-card-label">Links Taken</div></div>
+    <div class="stat-card green"><div class="stat-card-icon">✅</div><div class="stat-card-value">${exchangeComplete}</div><div class="stat-card-label">Exchanges Complete</div></div>
+  `;
+
+  const tbody = document.getElementById('link-tbody');
+  tbody.innerHTML = links.length ? links.map(l => `
+    <tr class="fade-in">
+      <td style="font-size:12px;color:var(--text-muted)">${l.id}</td>
+      <td>
+        <div style="font-size:13px;font-weight:500">${l.takenFrom || '—'}</div>
+        <div style="font-size:11px;color:var(--text-muted)">${l.takenFromContact || ''}</div>
+      </td>
+      <td>
+        <div style="font-size:13px;font-weight:500">${l.givenTo || '—'}</div>
+        <div style="font-size:11px;color:var(--text-muted)">${l.givenToContact || ''}</div>
+      </td>
+      <td><a href="${l.siteTaken || '#'}" target="_blank" style="color:var(--accent-light);font-size:13px">${l.siteTaken || '—'}</a></td>
+      <td><a href="${l.siteGiven || '#'}" target="_blank" style="color:var(--green);font-size:13px">${l.siteGiven || '—'}</a></td>
+      <td>
+        <div style="display:flex;flex-direction:column;gap:4px">
+          <label style="font-size:12px;display:flex;align-items:center;gap:6px;cursor:pointer">
+            <input type="checkbox" ${l.givenBack ? 'checked' : ''} onchange="updateLinkField('${l.id}','givenBack',this.checked)">
+            <span style="color:${l.givenBack ? 'var(--green)' : 'var(--text-muted)'}">Given Back</span>
+          </label>
+          <label style="font-size:12px;display:flex;align-items:center;gap:6px;cursor:pointer">
+            <input type="checkbox" ${l.receivedBack ? 'checked' : ''} onchange="updateLinkField('${l.id}','receivedBack',this.checked)">
+            <span style="color:${l.receivedBack ? 'var(--green)' : 'var(--text-muted)'}">Received Back</span>
+          </label>
+        </div>
+      </td>
+      <td>${l.date}</td>
+      <td>
+        <button class="btn btn-sm btn-danger" onclick="deleteLinkEntry('${l.id}')">🗑</button>
+      </td>
+    </tr>
+  `).join('') : `<tr><td colspan="8"><div class="empty-state"><div class="empty-icon">🔗</div><p>No link exchanges yet. Add your first one!</p></div></td></tr>`;
+}
+
+function updateLinkField(id, field, value) {
+  SASIT.updateLinkExchange(id, { [field]: value });
+  showToast('Updated!', 'success');
+  renderLinkExchange();
+}
+
+function deleteLinkEntry(id) {
+  if (confirm('Delete this link exchange entry?')) {
+    SASIT.deleteLinkExchange(id);
+    renderLinkExchange();
+    showToast('Entry deleted', 'error');
+  }
+}
+
+function openAddLinkModal() {
+  document.getElementById('add-link-form').reset();
+  openModal('add-link-modal');
+}
+
+function submitAddLink() {
+  const takenFrom = document.getElementById('link-taken-from').value.trim();
+  const takenFromContact = document.getElementById('link-taken-from-contact').value.trim();
+  const givenTo = document.getElementById('link-given-to').value.trim();
+  const givenToContact = document.getElementById('link-given-to-contact').value.trim();
+  const siteTaken = document.getElementById('link-site-taken').value.trim();
+  const siteGiven = document.getElementById('link-site-given').value.trim();
+  const notes = document.getElementById('link-notes').value.trim();
+
+  if (!siteTaken && !siteGiven) { showToast('Enter at least one site URL', 'error'); return; }
+
+  SASIT.addLinkExchange({
+    empId: SASIT.currentUser.id,
+    takenFrom, takenFromContact,
+    givenTo, givenToContact,
+    siteTaken, siteGiven,
+    givenBack: false, receivedBack: false,
+    notes
+  });
+
+  closeModal('add-link-modal');
+  renderLinkExchange();
+  showToast('Link exchange entry added!', 'success');
+}
