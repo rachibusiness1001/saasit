@@ -130,6 +130,8 @@
         <div class="nav-item" data-tab="orders" onclick="showAdminTab('orders')"><span class="nav-icon">📦</span> Orders</div>
         <div class="nav-section-label">Communication</div>
         <div class="nav-item" data-tab="chat" onclick="showAdminTab('chat')"><span class="nav-icon">💬</span> Team Chat</div>
+        <div class="nav-section-label">Reports</div>
+        <div class="nav-item" data-tab="reports" onclick="showAdminTab('reports')"><span class="nav-icon">📊</span> Reports</div>
         <div class="nav-section-label">Admin</div>
         <div class="nav-item" data-tab="admins" onclick="showAdminTab('admins')"><span class="nav-icon">🛡</span> Manage Admins</div>
         <div class="nav-item" data-tab="settings" onclick="showAdminTab('settings')"><span class="nav-icon">⚙️</span> Settings</div>
@@ -199,6 +201,30 @@
           </div>
         </div>
 
+        <!-- Link Exchange Tab -->
+        <div id="emp-tab-link-exchange" class="emp-tab-view">
+          <div class="section-header" style="margin-bottom:20px">
+            <div class="section-title">🔗 Link Exchange Manager</div>
+            <button class="btn btn-primary btn-sm" onclick="openAddLinkModal()">+ Add Entry</button>
+          </div>
+          <div id="link-stats" style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px"></div>
+          <div class="table-container">
+            <table>
+              <thead><tr>
+                <th>ID</th>
+                <th>Taken From</th>
+                <th>Given To</th>
+                <th>Site Taken</th>
+                <th>Site Given</th>
+                <th>Exchange Status</th>
+                <th>Date</th>
+                <th>Action</th>
+              </tr></thead>
+              <tbody id="link-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+
         <!-- Chat Tab -->
         <div id="tab-chat" class="tab-view">
           <div class="chat-layout">
@@ -233,7 +259,22 @@
           </div>
         </div>
 
-                <!-- Settings Tab -->
+                <!-- Reports Tab -->
+        <div id="tab-reports" class="tab-view">
+          <div class="section-header" style="margin-bottom:20px">
+            <div class="section-title">Employee Reports</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:24px">
+            <select class="form-select" id="report-emp-select" style="max-width:300px" onchange="loadEmployeeReport()">
+              <option value="">-- Select Employee --</option>
+            </select>
+          </div>
+          <div id="report-content">
+            <div class="empty-state"><div class="empty-icon">📊</div><p>Select an employee to view their report</p></div>
+          </div>
+        </div>
+
+        <!-- Settings Tab -->
         <div id="tab-settings" class="tab-view">
           <div class="settings-section">
             <div class="settings-section-title">📧 Email Notifications (EmailJS)</div>
@@ -293,6 +334,7 @@
         <div class="nav-section-label">My Work</div>
         <div class="nav-item emp-nav-item active" data-tab="my-tasks" onclick="showEmpTab('my-tasks')"><span class="nav-icon">✅</span> Daily Tasks</div>
         <div class="nav-item emp-nav-item" data-tab="my-orders" onclick="showEmpTab('my-orders')"><span class="nav-icon">📦</span> My Orders</div>
+        <div class="nav-item emp-nav-item" data-tab="link-exchange" onclick="showEmpTab('link-exchange')"><span class="nav-icon">🔗</span> Link Exchange</div>
         <div class="nav-section-label">Communication</div>
         <div class="nav-item emp-nav-item" data-tab="chat" onclick="showEmpTab('chat')"><span class="nav-icon">💬</span> Chat with Admin</div>
       </nav>
@@ -592,6 +634,59 @@
       <span class="modal-close" onclick="closeModal('emp-profile-modal')">✕</span>
     </div>
     <div class="modal-body" id="emp-profile-body"></div>
+  </div>
+</div>
+
+<!-- Add Link Exchange Modal -->
+<div id="add-link-modal" class="modal-overlay">
+  <div class="modal" style="max-width:580px">
+    <div class="modal-header">
+      <span class="modal-title">🔗 Add Link Exchange Entry</span>
+      <span class="modal-close" onclick="closeModal('add-link-modal')">✕</span>
+    </div>
+    <form id="add-link-form" onsubmit="return false">
+      <div class="modal-body">
+        <div style="background:var(--accent-dim);border:1px solid rgba(108,99,255,0.2);border-radius:var(--radius-sm);padding:12px 16px;font-size:13px;color:var(--text-secondary);margin-bottom:4px">
+          Fill in <strong>Taken From</strong> if you received a link, <strong>Given To</strong> if you gave a link, or both for a full exchange.
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Taken From (Name/Company)</label>
+            <input class="form-input" id="link-taken-from" type="text" placeholder="e.g. John Doe / TechBlog">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Their LinkedIn / Email</label>
+            <input class="form-input" id="link-taken-from-contact" type="text" placeholder="linkedin.com/in/john or john@email.com">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Site URL Taken From Them</label>
+          <input class="form-input" id="link-site-taken" type="text" placeholder="https://theirsite.com/page">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Given To (Name/Company)</label>
+            <input class="form-input" id="link-given-to" type="text" placeholder="e.g. Jane Smith / DigitalHub">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Their LinkedIn / Email</label>
+            <input class="form-input" id="link-given-to-contact" type="text" placeholder="linkedin.com/in/jane or jane@email.com">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Site URL Given To Them</label>
+          <input class="form-input" id="link-site-given" type="text" placeholder="https://oursite.com/page">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Notes</label>
+          <textarea class="form-textarea" id="link-notes" placeholder="Any additional notes..."></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal('add-link-modal')">Cancel</button>
+        <button class="btn btn-primary" onclick="submitAddLink()">Add Entry</button>
+      </div>
+    </form>
   </div>
 </div>
 
