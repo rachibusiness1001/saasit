@@ -6,10 +6,11 @@ const DEFAULT_DATA = {
   orders: [],
   notifications: [],
   chatMessages: [],
-  adminCredentials: { username: 'admin', password: 'admin123', email: '' },
+  linkExchanges: [], // { id, empId, takenFrom, givenTo, siteTaken, siteGiven, takenFromContact, givenToContact, givenBack, receivedBack, date, status, notes }
   admins: [
     { id: 'ADM001', name: 'Super Admin', username: 'admin', password: 'admin123', email: '', type: 'Super Admin', createdAt: '2025-01-01' },
   ],
+  adminCredentials: { username: 'admin', password: 'admin123', email: '' },
   emailConfig: { serviceId: '', templateId: '', publicKey: '' },
 };
 
@@ -18,17 +19,17 @@ const SASIT = {
   currentUser: null,
   currentRole: null,
 
-  // ─── Persistence ──────────────────────────────────────────────
   load() {
     try {
       const saved = localStorage.getItem('sasit_data');
       if (saved) {
         this.data = JSON.parse(saved);
-        // Ensure new keys exist if old data loaded
         if (!this.data.admins) this.data.admins = DEFAULT_DATA.admins;
         if (!this.data.emailConfig) this.data.emailConfig = DEFAULT_DATA.emailConfig;
         if (!this.data.chatMessages) this.data.chatMessages = [];
         if (!this.data.notifications) this.data.notifications = [];
+        if (!this.data.linkExchanges) this.data.linkExchanges = [];
+        if (!this.data.adminCredentials) this.data.adminCredentials = DEFAULT_DATA.adminCredentials;
       } else {
         this.data = JSON.parse(JSON.stringify(DEFAULT_DATA));
         this.save();
@@ -41,9 +42,7 @@ const SASIT = {
   save() {
     try {
       localStorage.setItem('sasit_data', JSON.stringify(this.data));
-    } catch(e) {
-      console.warn('localStorage save failed:', e);
-    }
+    } catch(e) { console.warn('localStorage save failed:', e); }
   },
 
   // ─── Auth ─────────────────────────────────────────────────────
@@ -57,8 +56,12 @@ const SASIT = {
       }
       return false;
     } else {
-      const emp = this.data.employees.find(e => e.email === username && e.id === password);
-      if (emp) { this.currentUser = emp; this.currentRole = 'employee'; return true; }
+      // Employee login: email + employeeId as password
+      const emp = this.data.employees.find(e =>
+        e.email.toLowerCase().trim() === username.toLowerCase().trim() &&
+        e.id.toLowerCase().trim() === password.toLowerCase().trim()
+      );
+      if (emp) { this.currentUser = { ...emp }; this.currentRole = 'employee'; return true; }
       return false;
     }
   },
@@ -66,9 +69,18 @@ const SASIT = {
 
   // ─── Employee CRUD ────────────────────────────────────────────
   addEmployee(data) {
-    const num = this.data.employees.length + 1;
-    const id = 'EMP' + String(num).padStart(3, '0');
-    const emp = { ...data, id, joinDate: new Date().toISOString().split('T')[0], avatar: data.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0,2) };
+    // Generate unique ID
+    let num = this.data.employees.length + 1;
+    let id = 'EMP' + String(num).padStart(3, '0');
+    while (this.data.employees.find(e => e.id === id)) {
+      num++;
+      id = 'EMP' + String(num).padStart(3, '0');
+    }
+    const emp = {
+      ...data, id,
+      joinDate: new Date().toISOString().split('T')[0],
+      avatar: data.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0,2)
+    };
     this.data.employees.push(emp);
     this.save();
     return emp;
@@ -114,10 +126,7 @@ const SASIT = {
     }
     return task;
   },
-  deleteTask(id) {
-    this.data.tasks = this.data.tasks.filter(t => t.id !== id);
-    this.save();
-  },
+  deleteTask(id) { this.data.tasks = this.data.tasks.filter(t => t.id !== id); this.save(); },
 
   // ─── Order CRUD ───────────────────────────────────────────────
   addOrder(data) {
@@ -140,9 +149,29 @@ const SASIT = {
     }
     return order;
   },
-  deleteOrder(id) {
-    this.data.orders = this.data.orders.filter(o => o.id !== id);
+  deleteOrder(id) { this.data.orders = this.data.orders.filter(o => o.id !== id); this.save(); },
+
+  // ─── Link Exchange CRUD ───────────────────────────────────────
+  addLinkExchange(data) {
+    const id = 'LNK' + String(this.data.linkExchanges.length + 1).padStart(3, '0');
+    const entry = { ...data, id, date: new Date().toISOString().split('T')[0] };
+    this.data.linkExchanges.push(entry);
     this.save();
+    return entry;
+  },
+  updateLinkExchange(id, updates) {
+    const idx = this.data.linkExchanges.findIndex(l => l.id === id);
+    if (idx !== -1) {
+      this.data.linkExchanges[idx] = { ...this.data.linkExchanges[idx], ...updates };
+      this.save();
+    }
+  },
+  deleteLinkExchange(id) {
+    this.data.linkExchanges = this.data.linkExchanges.filter(l => l.id !== id);
+    this.save();
+  },
+  getLinkExchangesForEmployee(empId) {
+    return this.data.linkExchanges.filter(l => l.empId === empId);
   },
 
   // ─── Comments ─────────────────────────────────────────────────
@@ -172,14 +201,10 @@ const SASIT = {
   },
   sendChatMessage(to, text) {
     const msg = {
-      id: Date.now(),
-      from: this.currentUser.id,
-      fromName: this.currentUser.name,
-      to,
-      text,
+      id: Date.now(), from: this.currentUser.id, fromName: this.currentUser.name,
+      to, text,
       time: new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }),
-      date: new Date().toISOString().split('T')[0],
-      read: false
+      date: new Date().toISOString().split('T')[0], read: false
     };
     this.data.chatMessages.push(msg);
     this.save();
@@ -192,7 +217,6 @@ const SASIT = {
       id: Date.now(), userId, message, type, read: false,
       time: new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })
     });
-    // Keep max 100 notifications
     if (this.data.notifications.length > 100) this.data.notifications = this.data.notifications.slice(0, 100);
     this.save();
   },
@@ -202,16 +226,6 @@ const SASIT = {
   },
   markAllRead(userId) {
     this.data.notifications.forEach(n => { if (n.userId === userId) n.read = true; });
-    this.save();
-  },
-
-  // ─── Settings ─────────────────────────────────────────────────
-  saveEmailConfig(config) {
-    this.data.emailConfig = config;
-    this.save();
-  },
-  saveAdminEmail(email) {
-    this.data.adminCredentials.email = email;
     this.save();
   },
 
@@ -235,5 +249,4 @@ const SASIT = {
   }
 };
 
-// Load data immediately when script runs
 SASIT.load();
