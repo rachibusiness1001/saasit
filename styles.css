@@ -738,6 +738,30 @@ tbody tr:hover { background: var(--bg-hover); }
 /* ── Emp nav active ── */
 .emp-nav-item.active { background: var(--accent-dim); color: var(--accent-light); border-color: rgba(108,99,255,0.2); }
 
-/* ── Link Exchange table fix ── */
-#link-tbody td { vertical-align: middle; }
-#link-stats { display: grid; }
+/* ── Per-Employee Tabs (Admin view) ── */
+.emp-person-tabs-nav {
+  display: flex; gap: 8px; flex-wrap: wrap;
+  margin-bottom: 20px; padding: 16px;
+  background: var(--bg-surface); border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+}
+.emp-person-tab {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 9px 18px; border-radius: var(--radius-sm);
+  font-family: var(--font-display); font-size: 13px; font-weight: 600;
+  cursor: pointer; border: 1px solid var(--border);
+  background: var(--bg-card); color: var(--text-secondary);
+  transition: var(--transition);
+}
+.emp-person-tab:hover { background: var(--bg-hover); color: var(--text-primary); border-color: var(--border-light); }
+.emp-person-tab.active {
+  background: var(--accent-dim); color: var(--accent-light);
+  border-color: rgba(108,99,255,0.3);
+}
+.emp-person-tab-content {
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); padding: 24px;
+}
+
+/* ── Link Exchange table overflow ── */
+.table-container.scrollable { overflow-x: auto; }
