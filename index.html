@@ -4,8 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SASIT — Team Management</title>
-  <link rel="stylesheet" href="styles.css">
-  <!-- EmailJS -->
+  <link rel="stylesheet" href="css/styles.css">
   <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
 </head>
 <body>
@@ -51,9 +50,9 @@
     <div class="feature-card"><div class="feature-icon">👥</div><div class="feature-title">Employee Management</div><div class="feature-desc">Create employee accounts, assign IDs, manage roles and contact info in one place.</div></div>
     <div class="feature-card"><div class="feature-icon">✅</div><div class="feature-title">Task Assignment</div><div class="feature-desc">Assign tasks with priorities, deadlines and descriptions. Employees see updates instantly.</div></div>
     <div class="feature-card"><div class="feature-icon">📦</div><div class="feature-title">Order Tracking</div><div class="feature-desc">Track link building and SEO orders from pending to completed with status updates.</div></div>
+    <div class="feature-card"><div class="feature-icon">🔗</div><div class="feature-title">Link Exchange</div><div class="feature-desc">Employees manage their link exchange contacts, track links given/received, and monitor status.</div></div>
     <div class="feature-card"><div class="feature-icon">💬</div><div class="feature-title">Team Chat</div><div class="feature-desc">Admin and employees can chat directly inside the platform. No external tools needed.</div></div>
-    <div class="feature-card"><div class="feature-icon">📧</div><div class="feature-title">Email Notifications</div><div class="feature-desc">Get Gmail alerts when orders or tasks are completed. Powered by EmailJS.</div></div>
-    <div class="feature-card"><div class="feature-icon">🔒</div><div class="feature-title">Secure Access</div><div class="feature-desc">Separate login for admin and employees. Each sees only what they need to.</div></div>
+    <div class="feature-card"><div class="feature-icon">🔒</div><div class="feature-title">Persistent Data</div><div class="feature-desc">All data is saved locally — your employees, tasks, and orders stay even after refresh.</div></div>
   </div>
   <div style="padding:40px 0;text-align:center;color:var(--text-muted);font-size:13px;position:relative;z-index:1">
     © 2025 SASIT — Built for your team
@@ -70,8 +69,8 @@
       <div class="back-btn" style="justify-content:center" onclick="showPage('landing-page')">← Back to Home</div>
     </div>
     <div class="login-tabs">
-      <button class="login-tab active" data-mode="admin" onclick="setLoginTab('admin')">🛡 Admin</button>
-      <button class="login-tab" data-mode="employee" onclick="setLoginTab('employee')">👤 Employee</button>
+      <button class="login-tab active" data-mode="admin"    onclick="setLoginTab('admin')">🛡 Admin</button>
+      <button class="login-tab"        data-mode="employee" onclick="setLoginTab('employee')">👤 Employee</button>
     </div>
     <div class="login-card">
       <div class="login-header">
@@ -101,6 +100,7 @@
           <label class="form-label">Employee ID (Password)</label>
           <input class="form-input" id="emp-id" type="text" placeholder="EMP001">
         </div>
+        <div class="login-hint">Your Employee ID is your password (e.g. EMP001). Contact admin if you forgot.</div>
         <button class="btn btn-primary btn-full" onclick="doLogin()">Sign In as Employee →</button>
       </div>
     </div>
@@ -123,18 +123,16 @@
       </div>
       <nav class="sidebar-nav">
         <div class="nav-section-label">Main</div>
-        <div class="nav-item active" data-tab="dashboard" onclick="showAdminTab('dashboard')"><span class="nav-icon">📊</span> Dashboard</div>
-        <div class="nav-item" data-tab="employees" onclick="showAdminTab('employees')"><span class="nav-icon">👥</span> Employees</div>
+        <div class="nav-item active" data-tab="dashboard"  onclick="showAdminTab('dashboard')"><span class="nav-icon">📊</span> Dashboard</div>
+        <div class="nav-item"        data-tab="employees"  onclick="showAdminTab('employees')"><span class="nav-icon">👥</span> Employees</div>
         <div class="nav-section-label">Work</div>
-        <div class="nav-item" data-tab="tasks" onclick="showAdminTab('tasks')"><span class="nav-icon">✅</span> Tasks</div>
-        <div class="nav-item" data-tab="orders" onclick="showAdminTab('orders')"><span class="nav-icon">📦</span> Orders</div>
+        <div class="nav-item"        data-tab="tasks"      onclick="showAdminTab('tasks')"><span class="nav-icon">✅</span> Tasks</div>
+        <div class="nav-item"        data-tab="orders"     onclick="showAdminTab('orders')"><span class="nav-icon">📦</span> Orders</div>
         <div class="nav-section-label">Communication</div>
-        <div class="nav-item" data-tab="chat" onclick="showAdminTab('chat')"><span class="nav-icon">💬</span> Team Chat</div>
-        <div class="nav-section-label">Reports</div>
-        <div class="nav-item" data-tab="reports" onclick="showAdminTab('reports')"><span class="nav-icon">📊</span> Reports</div>
+        <div class="nav-item"        data-tab="chat"       onclick="showAdminTab('chat')"><span class="nav-icon">💬</span> Team Chat</div>
         <div class="nav-section-label">Admin</div>
-        <div class="nav-item" data-tab="admins" onclick="showAdminTab('admins')"><span class="nav-icon">🛡</span> Manage Admins</div>
-        <div class="nav-item" data-tab="settings" onclick="showAdminTab('settings')"><span class="nav-icon">⚙️</span> Settings</div>
+        <div class="nav-item"        data-tab="admins"     onclick="showAdminTab('admins')"><span class="nav-icon">🛡</span> Manage Admins</div>
+        <div class="nav-item"        data-tab="settings"   onclick="showAdminTab('settings')"><span class="nav-icon">⚙️</span> Settings</div>
       </nav>
       <div class="sidebar-footer">
         <button class="btn btn-secondary btn-full" onclick="doLogout()">🚪 Logout</button>
@@ -165,16 +163,21 @@
           </div>
         </div>
 
-        <!-- Employees Tab -->
+        <!-- Employees Tab — with per-employee subtabs -->
         <div id="tab-employees" class="tab-view">
           <div class="section-header">
             <div class="section-title">All Employees</div>
             <button class="btn btn-primary btn-sm" onclick="openAddEmp()">+ Add Employee</button>
           </div>
-          <div class="table-container">
+          <div class="table-container" style="margin-bottom:32px">
             <table><thead><tr><th>Employee</th><th>ID</th><th>Role</th><th>Phone</th><th>Joined</th><th>Actions</th></tr></thead>
             <tbody id="emp-tbody"></tbody></table>
           </div>
+
+          <!-- Per-employee tabs -->
+          <div class="section-title" style="margin-bottom:16px">📋 Per-Employee View</div>
+          <div id="emp-tabs-nav" class="emp-person-tabs-nav"></div>
+          <div id="emp-tab-content" class="emp-person-tab-content"></div>
         </div>
 
         <!-- Tasks Tab -->
@@ -198,30 +201,6 @@
           <div class="table-container">
             <table><thead><tr><th>Client</th><th>Link</th><th>Assigned To</th><th>Amount</th><th>Status</th><th>Date</th><th>Actions</th></tr></thead>
             <tbody id="order-tbody"></tbody></table>
-          </div>
-        </div>
-
-        <!-- Link Exchange Tab -->
-        <div id="emp-tab-link-exchange" class="emp-tab-view">
-          <div class="section-header" style="margin-bottom:20px">
-            <div class="section-title">🔗 Link Exchange Manager</div>
-            <button class="btn btn-primary btn-sm" onclick="openAddLinkModal()">+ Add Entry</button>
-          </div>
-          <div id="link-stats" style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px"></div>
-          <div class="table-container">
-            <table>
-              <thead><tr>
-                <th>ID</th>
-                <th>Taken From</th>
-                <th>Given To</th>
-                <th>Site Taken</th>
-                <th>Site Given</th>
-                <th>Exchange Status</th>
-                <th>Date</th>
-                <th>Action</th>
-              </tr></thead>
-              <tbody id="link-tbody"></tbody>
-            </table>
           </div>
         </div>
 
@@ -259,21 +238,6 @@
           </div>
         </div>
 
-                <!-- Reports Tab -->
-        <div id="tab-reports" class="tab-view">
-          <div class="section-header" style="margin-bottom:20px">
-            <div class="section-title">Employee Reports</div>
-          </div>
-          <div style="display:flex;align-items:center;gap:12px;margin-bottom:24px">
-            <select class="form-select" id="report-emp-select" style="max-width:300px" onchange="loadEmployeeReport()">
-              <option value="">-- Select Employee --</option>
-            </select>
-          </div>
-          <div id="report-content">
-            <div class="empty-state"><div class="empty-icon">📊</div><p>Select an employee to view their report</p></div>
-          </div>
-        </div>
-
         <!-- Settings Tab -->
         <div id="tab-settings" class="tab-view">
           <div class="settings-section">
@@ -297,13 +261,12 @@
               <input class="form-input" id="settings-ejs-pubkey" type="text" placeholder="xxxxxxxxxxxxxxxxxxx">
             </div>
             <div class="settings-hint">
-              <strong>How to set up EmailJS (free, no backend needed):</strong><br>
-              1. Go to <a href="https://emailjs.com" target="_blank">emailjs.com</a> and create a free account<br>
-              2. Add a service (connect your Gmail) → copy the <code>Service ID</code><br>
-              3. Create an email template with variables: <code>{{to_email}}</code>, <code>{{subject}}</code>, <code>{{message}}</code> → copy the <code>Template ID</code><br>
-              4. Go to Account → copy your <code>Public Key</code><br>
-              5. Add each employee's Gmail in their profile when creating them<br>
-              6. Paste all values above and click Save
+              <strong>How to set up EmailJS (free):</strong><br>
+              1. Go to <a href="https://emailjs.com" target="_blank">emailjs.com</a> → create a free account<br>
+              2. Add a service (connect Gmail) → copy <code>Service ID</code><br>
+              3. Create template with <code>{{to_email}}</code>, <code>{{subject}}</code>, <code>{{message}}</code> → copy <code>Template ID</code><br>
+              4. Account → copy <code>Public Key</code><br>
+              5. Paste all above → Save
             </div>
             <div style="margin-top:20px">
               <button class="btn btn-primary" onclick="saveSettings()">💾 Save Settings</button>
@@ -332,11 +295,11 @@
       </div>
       <nav class="sidebar-nav">
         <div class="nav-section-label">My Work</div>
-        <div class="nav-item emp-nav-item active" data-tab="my-tasks" onclick="showEmpTab('my-tasks')"><span class="nav-icon">✅</span> Daily Tasks</div>
-        <div class="nav-item emp-nav-item" data-tab="my-orders" onclick="showEmpTab('my-orders')"><span class="nav-icon">📦</span> My Orders</div>
-        <div class="nav-item emp-nav-item" data-tab="link-exchange" onclick="showEmpTab('link-exchange')"><span class="nav-icon">🔗</span> Link Exchange</div>
+        <div class="nav-item emp-nav-item active" data-tab="my-tasks"      onclick="showEmpTab('my-tasks')"><span class="nav-icon">✅</span> Daily Tasks</div>
+        <div class="nav-item emp-nav-item"        data-tab="my-orders"     onclick="showEmpTab('my-orders')"><span class="nav-icon">📦</span> My Orders</div>
+        <div class="nav-item emp-nav-item"        data-tab="link-exchange" onclick="showEmpTab('link-exchange')"><span class="nav-icon">🔗</span> Link Exchange</div>
         <div class="nav-section-label">Communication</div>
-        <div class="nav-item emp-nav-item" data-tab="chat" onclick="showEmpTab('chat')"><span class="nav-icon">💬</span> Chat with Admin</div>
+        <div class="nav-item emp-nav-item"        data-tab="chat"          onclick="showEmpTab('chat')"><span class="nav-icon">💬</span> Chat with Admin</div>
       </nav>
       <div class="sidebar-footer">
         <button class="btn btn-secondary btn-full" onclick="doLogout()">🚪 Logout</button>
@@ -371,7 +334,12 @@
           <div id="my-orders-list"></div>
         </div>
 
-        <!-- Chat — full standalone page, no tabs here -->
+        <!-- Link Exchange -->
+        <div id="emp-tab-link-exchange" class="emp-tab-view">
+          <!-- Rendered by renderLinkExchange() -->
+        </div>
+
+        <!-- Chat -->
         <div id="emp-tab-chat" class="emp-tab-view">
           <div class="emp-chat-layout">
             <div class="emp-chat-header">💬 Chat with Admin</div>
@@ -424,7 +392,7 @@
           <input class="form-input" id="new-emp-gmail" type="email" placeholder="rohit@gmail.com">
         </div>
         <div class="login-hint">
-          <strong>Note:</strong> Employee ID will be auto-generated. Employee logs in using their <strong>Email + Employee ID</strong>.
+          <strong>Note:</strong> Employee ID is auto-generated and acts as their password. They log in using <strong>Email + Employee ID</strong>.
         </div>
       </div>
       <div class="modal-footer">
@@ -551,21 +519,23 @@
       <div class="modal-body">
         <div class="form-group">
           <label class="form-label">Full Name *</label>
-          <input class="form-input" id="new-admin-name" type="text" placeholder="Suresh Gupta">
+          <input class="form-input" id="new-admin-name" type="text" placeholder="Rohit Sharma">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Username *</label>
+            <input class="form-input" id="new-admin-username" type="text" placeholder="rohit_admin">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Password *</label>
+            <input class="form-input" id="new-admin-password" type="password" placeholder="••••••••">
+          </div>
         </div>
         <div class="form-group">
-          <label class="form-label">Username *</label>
-          <input class="form-input" id="new-admin-username" type="text" placeholder="suresh_admin">
+          <label class="form-label">Gmail (for notifications)</label>
+          <input class="form-input" id="new-admin-email" type="email" placeholder="rohit@gmail.com">
         </div>
-        <div class="form-group">
-          <label class="form-label">Password *</label>
-          <input class="form-input" id="new-admin-password" type="password" placeholder="••••••••">
-        </div>
-        <div class="form-group">
-          <label class="form-label">Gmail for Notifications (optional)</label>
-          <input class="form-input" id="new-admin-gmail" type="email" placeholder="suresh@gmail.com">
-        </div>
-        <div class="login-hint">This admin will have full access to the SASIT panel.</div>
+        <div class="login-hint"><strong>Note:</strong> This admin will have full access. Share credentials carefully.</div>
       </div>
       <div class="modal-footer">
         <button class="btn btn-secondary" onclick="closeModal('add-admin-modal')">Cancel</button>
@@ -586,111 +556,109 @@
   </div>
 </div>
 
-
-<!-- Add Admin Modal -->
-<div id="add-admin-modal" class="modal-overlay">
-  <div class="modal">
+<!-- Link Exchange Modal (Add / Edit) -->
+<div id="link-ex-modal" class="modal-overlay">
+  <div class="modal" style="max-width:620px">
     <div class="modal-header">
-      <span class="modal-title">🛡 Add New Admin</span>
-      <span class="modal-close" onclick="closeModal('add-admin-modal')">✕</span>
+      <span class="modal-title" id="link-ex-modal-title">🔗 Add Link Exchange</span>
+      <span class="modal-close" onclick="closeModal('link-ex-modal')">✕</span>
     </div>
-    <form id="add-admin-form" onsubmit="return false">
+    <form id="link-ex-form" onsubmit="return false">
       <div class="modal-body">
-        <div class="form-group">
-          <label class="form-label">Full Name *</label>
-          <input class="form-input" id="new-admin-name" type="text" placeholder="e.g. Rohit Sharma">
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label class="form-label">Username *</label>
-            <input class="form-input" id="new-admin-username" type="text" placeholder="rohit_admin">
-          </div>
-          <div class="form-group">
-            <label class="form-label">Password *</label>
-            <input class="form-input" id="new-admin-password" type="password" placeholder="••••••••">
-          </div>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Gmail (for notifications)</label>
-          <input class="form-input" id="new-admin-email" type="email" placeholder="rohit@gmail.com">
-        </div>
-        <div class="login-hint" style="margin-top:4px">
-          <strong>Note:</strong> This admin will have full access — same as you. Share credentials carefully.
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button class="btn btn-secondary" onclick="closeModal('add-admin-modal')">Cancel</button>
-        <button class="btn btn-primary" onclick="submitAddAdmin()">Create Admin</button>
-      </div>
-    </form>
-  </div>
-</div>
 
-<!-- Employee Profile Modal -->
-<div id="emp-profile-modal" class="modal-overlay">
-  <div class="modal" style="max-width:600px">
-    <div class="modal-header">
-      <span class="modal-title" id="emp-profile-title">Employee Profile</span>
-      <span class="modal-close" onclick="closeModal('emp-profile-modal')">✕</span>
-    </div>
-    <div class="modal-body" id="emp-profile-body"></div>
-  </div>
-</div>
+        <!-- From section -->
+        <div style="font-family:var(--font-display);font-size:14px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:12px">
+          📥 Source — Person we got the link from
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Name / Company</label>
+            <input class="form-input" id="lx-from-name" type="text" placeholder="John Doe / ABC Corp">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Their Site</label>
+            <input class="form-input" id="lx-from-site" type="text" placeholder="https://theirsite.com">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">LinkedIn URL</label>
+            <input class="form-input" id="lx-from-linkedin" type="url" placeholder="https://linkedin.com/in/...">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Email</label>
+            <input class="form-input" id="lx-from-email" type="email" placeholder="john@example.com">
+          </div>
+        </div>
 
-<!-- Add Link Exchange Modal -->
-<div id="add-link-modal" class="modal-overlay">
-  <div class="modal" style="max-width:580px">
-    <div class="modal-header">
-      <span class="modal-title">🔗 Add Link Exchange Entry</span>
-      <span class="modal-close" onclick="closeModal('add-link-modal')">✕</span>
-    </div>
-    <form id="add-link-form" onsubmit="return false">
-      <div class="modal-body">
-        <div style="background:var(--accent-dim);border:1px solid rgba(108,99,255,0.2);border-radius:var(--radius-sm);padding:12px 16px;font-size:13px;color:var(--text-secondary);margin-bottom:4px">
-          Fill in <strong>Taken From</strong> if you received a link, <strong>Given To</strong> if you gave a link, or both for a full exchange.
+        <div style="border-top:1px solid var(--border);margin:8px 0 16px"></div>
+
+        <!-- To section -->
+        <div style="font-family:var(--font-display);font-size:14px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:12px">
+          📤 Recipient — Person we gave the link to
         </div>
         <div class="form-row">
           <div class="form-group">
-            <label class="form-label">Taken From (Name/Company)</label>
-            <input class="form-input" id="link-taken-from" type="text" placeholder="e.g. John Doe / TechBlog">
+            <label class="form-label">Name / Company</label>
+            <input class="form-input" id="lx-to-name" type="text" placeholder="Jane Smith / XYZ Corp">
           </div>
           <div class="form-group">
-            <label class="form-label">Their LinkedIn / Email</label>
-            <input class="form-input" id="link-taken-from-contact" type="text" placeholder="linkedin.com/in/john or john@email.com">
+            <label class="form-label">Their Site</label>
+            <input class="form-input" id="lx-to-site" type="text" placeholder="https://theirsite.com">
           </div>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Site URL Taken From Them</label>
-          <input class="form-input" id="link-site-taken" type="text" placeholder="https://theirsite.com/page">
         </div>
         <div class="form-row">
           <div class="form-group">
-            <label class="form-label">Given To (Name/Company)</label>
-            <input class="form-input" id="link-given-to" type="text" placeholder="e.g. Jane Smith / DigitalHub">
+            <label class="form-label">LinkedIn URL</label>
+            <input class="form-input" id="lx-to-linkedin" type="url" placeholder="https://linkedin.com/in/...">
           </div>
           <div class="form-group">
-            <label class="form-label">Their LinkedIn / Email</label>
-            <input class="form-input" id="link-given-to-contact" type="text" placeholder="linkedin.com/in/jane or jane@email.com">
+            <label class="form-label">Email</label>
+            <input class="form-input" id="lx-to-email" type="email" placeholder="jane@example.com">
           </div>
         </div>
-        <div class="form-group">
-          <label class="form-label">Site URL Given To Them</label>
-          <input class="form-input" id="link-site-given" type="text" placeholder="https://oursite.com/page">
+
+        <div style="border-top:1px solid var(--border);margin:8px 0 16px"></div>
+
+        <!-- Exchange state -->
+        <div style="font-family:var(--font-display);font-size:14px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:12px">
+          🔄 Exchange Status
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Status</label>
+            <select class="form-select" id="lx-status">
+              <option value="pending">Pending</option>
+              <option value="in-progress">In Progress</option>
+              <option value="completed">Completed</option>
+              <option value="cancelled">Cancelled</option>
+            </select>
+          </div>
+          <div class="form-group" style="justify-content:flex-end;gap:16px;flex-direction:row;align-items:center;padding-top:24px">
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:14px;font-weight:500">
+              <input type="checkbox" id="lx-link-given" style="accent-color:var(--accent);width:16px;height:16px">
+              Link Given
+            </label>
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:14px;font-weight:500">
+              <input type="checkbox" id="lx-link-received" style="accent-color:var(--green);width:16px;height:16px">
+              Link Received
+            </label>
+          </div>
         </div>
         <div class="form-group">
           <label class="form-label">Notes</label>
-          <textarea class="form-textarea" id="link-notes" placeholder="Any additional notes..."></textarea>
+          <textarea class="form-textarea" id="lx-notes" placeholder="Any notes about this exchange..." style="min-height:60px"></textarea>
         </div>
       </div>
       <div class="modal-footer">
-        <button class="btn btn-secondary" onclick="closeModal('add-link-modal')">Cancel</button>
-        <button class="btn btn-primary" onclick="submitAddLink()">Add Entry</button>
+        <button class="btn btn-secondary" onclick="closeModal('link-ex-modal')">Cancel</button>
+        <button class="btn btn-primary" onclick="submitLinkExchange()">Save Entry</button>
       </div>
     </form>
   </div>
 </div>
 
-<script src="store.js"></script>
-<script src="app.js"></script>
+<script src="js/store.js"></script>
+<script src="js/app.js"></script>
 </body>
 </html>
